@@ -1,131 +1,167 @@
 # Contributing to Studio Brainstorm
 
-This document tells every Space — Bob, Alice, and any future agent — exactly how to write, commit, and retrieve entries.
+This is the full protocol for any agent — Bob, Alice, or any LLM in any app — to write, retrieve, and triage entries. For the one-paragraph version to paste into a system prompt, see `LLM-INSTRUCTIONS.md`.
 
 ---
 
-## When to Push an Idea Here
+## This Repo is Independent
 
-Push to this repo when:
-- A conversation produces an idea that isn’t ready for a roadmap
-- The owner says “let’s note that for later” or “that’s a future thing”
-- A brainstorm session wraps up and the useful residue should be saved
-- You identify a pattern across multiple conversations that deserves a home
+Studio Brainstorm does **not** depend on Studio Spaces being installed or running. Any LLM with:
+- A GitHub personal access token (with `repo` scope)
+- Knowledge of this entry format
 
-Do NOT push here:
-- Completed tasks (those go in your outbox)
-- Active roadmap items (those go in ROADMAPspaces.md or roadmap-phase6-7.md)
-- Bug reports or CI issues (those go in Bob’s outbox or GitHub Issues)
+...can write here directly via the GitHub API. No SDK. No server. No Studio Spaces.
 
 ---
 
-## Writing a New Idea Entry
+## Dual-Write Pattern
 
-### 1. Choose the right template
+Every agent should write to TWO places per session:
 
-- **Single idea** → `templates/idea.md`
-- **Full session dump** → `templates/session.md`
-
-### 2. Create the file
-
-File path: `ideas/raw/YYYY-MM-DD-{short-slug}.md`
-
-Examples:
 ```
-ideas/raw/2026-04-30-ephemeral-pwa-commerce.md
-ideas/raw/2026-05-01-local-gitea-offline-mode.md
-ideas/raw/2026-05-01-brainstorm-repo-concept.md
+1. Project repo outbox     → what was BUILT or DONE
+   spaces/{name}/outbox.md in the project repo
+
+2. studio-brainstorm       → what was THOUGHT or IMAGINED
+   inbox/YYYY-MM/{date}-{space}-{project}-{slug}.md
 ```
 
-### 3. Fill in the frontmatter
+These are different concerns and should never be merged.
+
+---
+
+## Writing a New Inbox Entry
+
+### Step 1 — Filename
+
+All new entries go into `inbox/YYYY-MM/` partitioned by the current month:
+
+```
+inbox/2026-05/2026-05-01-bob-studio-spaces-ephemeral-pwa.md
+```
+
+Filename format: `YYYY-MM-DD-{space}-{project}-{slug}.md`
+- `space` — your space/agent name (lowercase, no spaces)
+- `project` — the project this idea came from (lowercase, hyphenated)
+- `slug` — 2-5 word description (lowercase, hyphenated)
+
+The filename itself encodes full provenance. No database needed.
+
+### Step 2 — Frontmatter (required, no exceptions)
 
 ```yaml
 ---
-id: 2026-05-01-your-slug
+id: 2026-05-01-bob-studio-spaces-ephemeral-pwa
 date: 2026-05-01 14:30 UTC
 space: bob
 project: studio-spaces
-tags: [tag1, tag2]
-status: raw
+app: perplexity               # optional
+conversation_ref:             # optional: URL or ID
+tags: [ephemeral, commerce, pwa]
+status: inbox
 promoted_to:
 ---
 ```
 
-### 4. Write the body
+Missing frontmatter = slop. All four provenance fields (`id`, `date`, `space`, `project`) are mandatory.
 
-No rules on format. Be as raw or as structured as the idea demands. A single sentence is fine. A multi-section exploration is fine. The goal is capture, not polish.
+### Step 3 — Body
 
-### 5. Update INDEX.md
+No format rules. A single sentence is fine. A multi-section write-up is fine. The goal is capture, not polish.
 
-Add one line to the index table:
+### Step 4 — Update INDEX.md
 
-```markdown
-| 2026-05-01 | bob | studio-spaces | Your idea title | raw | [link](ideas/raw/2026-05-01-your-slug.md) |
-```
-
-### 6. Commit with [skip ci]
-
-All commits to this repo should include `[skip ci]` — there is no CI here and we don’t want to trigger any parent project workflows.
+Append one row at the TOP of the index table (newest first):
 
 ```
-git commit -m "brainstorm: add {slug} from {space} [skip ci]"
+| 2026-05-01 | bob | studio-spaces | Your Idea Title | inbox | [ephemeral, commerce] | [view](inbox/2026-05/2026-05-01-bob-studio-spaces-your-slug.md) |
 ```
+
+### Step 5 — Commit
+
+```
+brainstorm: {slug} [{space}/{project}] [skip ci]
+```
+
+Always include `[skip ci]`. This repo has no CI and we don't want to trigger parent project workflows.
 
 ---
 
-## Retrieving an Idea
+## Retrieving a Past Idea
 
-### Quick search
-Scan `INDEX.md` — it has date, space, project, title, status, and a direct link to every entry.
+### Option 1: INDEX.md (fastest)
+Search `INDEX.md` — one row per idea, newest first. Columns: date, space, project, title, status, tags, link.
 
-### Tag search
-All tags are in the frontmatter. Search the repo for any tag string to find related ideas:
+### Option 2: Filename search
+All files are named `YYYY-MM-DD-{space}-{project}-{slug}.md`. Sort by name = sort by date. Filter by `{project}` to find all ideas from a specific project.
+
+### Option 3: Tag search
 ```
-grep -r "ephemeral" ideas/
+grep -r "tag-name" inbox/ ideas/
 ```
 
-### Date range
-Files are named `YYYY-MM-DD-{slug}.md` so sorting by filename = sorting by date. Session logs in `sessions/YYYY-MM/` are grouped by month.
+### Option 4: Archive
+For ideas older than ~90 days, check `archive/YYYY-QN/digest.md`. For ideas older than ~1 year, check `archive/YYYY/annual.md`.
 
 ---
 
-## Promoting an Idea to a Roadmap
+## Triage Protocol
 
-1. Move the file: `ideas/raw/` → `ideas/promoted/`
-2. Update frontmatter:
-   ```yaml
-   status: promoted
-   promoted_to: roadmap-phase6-7.md
-   ```
-3. Update `INDEX.md` status column to `promoted`
-4. Commit: `"brainstorm: promote {slug} to {destination} [skip ci]"`
+### Weekly (light)
+- Scan `inbox/YYYY-MM/` for entries from the past 7 days
+- Move anything with clear legs to `ideas/developing/`
+- Update `INDEX.md` status column
+- Leave everything else in inbox
+
+### Monthly
+- Any inbox entry older than 30 days that hasn’t moved to `developing` → move to `archive/YYYY-QN/`
+- Update `INDEX.md`
+
+### Quarterly
+- Compress all monthly folders in `archive/YYYY-QN/` into a single `digest.md` summary
+- Delete the individual monthly files (the digest is the record)
+- Update `INDEX.md` archive entries to point to digest
+
+### Annual
+- Merge all quarter digests into `archive/YYYY/annual.md`
+- Delete individual quarter digests
+- This keeps the repo lean regardless of volume
+
+---
+
+## Promoting to a Roadmap
+
+1. Move file: `inbox/YYYY-MM/` or `ideas/developing/` → `ideas/promoted/`
+2. Update frontmatter: `status: promoted`, `promoted_to: {destination file}`
+3. Update `INDEX.md` row
+4. Commit: `brainstorm: promote {slug} to {destination} [skip ci]`
 
 ---
 
 ## Archiving an Idea
 
-1. Move the file: `ideas/raw/` or `ideas/developing/` → `ideas/archived/`
+1. Move file to `ideas/archived/`
 2. Update frontmatter: `status: archived`
-3. Update `INDEX.md` status column to `archived`
+3. Update `INDEX.md`
 4. Never delete. Ideas come back.
 
 ---
 
-## MMCP Protocol for This Repo
+## MMCP Envelope for This Repo
 
-Any Space in any project can message this repo’s inbox using the standard envelope format:
+Any Space can drop a message into this repo’s inbox using the standard MMCP envelope, committed directly to `inbox/YYYY-MM/` with a properly named file:
 
 ```markdown
 ---
-from: {space-name}
+from: alice
 to: brainstorm
-date: YYYY-MM-DD HH:MM UTC
-subject: {idea title or session summary}
+date: 2026-05-01 15:00 UTC
+subject: Sidebar animation idea
 ---
 
-{body — the idea, the context, any relevant links}
+Body of the idea...
 
 ---
 ```
 
-The brainstorm repo does not have an active agent assigned to it yet. Messages left in `inbox.md` are for the owner to review and optionally convert into idea entries. In a future phase, a dedicated Brainstorm Space (agent) will monitor this inbox and auto-create entries.
+The filename still follows the provenance convention: `2026-05-01-alice-studio-spaces-sidebar-animation.md`
