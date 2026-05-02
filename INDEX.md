@@ -8,6 +8,7 @@ Every idea entry in this repo has one row here. **Newest first.** This is the pr
 
 | Date | Space | Project | Title | Status | Tags | Link |
 |------|-------|---------|-------|--------|------|------|
+| 2026-05-01 | bob | studio-spaces | MMCLI — Mobile Model Context Line Interface | promoted | mmcli, mmcp, mobile, cli, shell, llm, terminal, mshell | [view](ideas/promoted/2026-05-01-bob-studio-spaces-mmcli.md) |
 | 2026-05-01 | bob | studio-spaces | Studio Brainstorm Repo — cross-project idea memory | promoted | brainstorm, memory, mmcp, agent-os | [view](ideas/promoted/2026-05-01-studio-brainstorm-repo.md) |
 | 2026-04-30 | bob | studio-spaces | Live Agent Triggers via Webhook + Web Push | promoted | push-notifications, webhooks, pwa, service-worker | [view](ideas/promoted/2026-04-30-live-agent-triggers.md) |
 | 2026-04-30 | bob | studio-spaces | Local-First Studio Spaces via Gitea / Forgejo | promoted | gitea, forgejo, local-first, offline, provider-abstraction | [view](ideas/promoted/2026-04-30-local-gitea-forgejo.md) |
